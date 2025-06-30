@@ -221,10 +221,19 @@ st.markdown(css, unsafe_allow_html=True)
 # --- 2. API 모델 로드 (캐싱) ---
 @st.cache_resource
 def load_gemini_model():
-    load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY")
+    # Streamlit Cloud에서는 st.secrets 사용, 로컬에서는 .env 사용
+    api_key = None
+    
+    # 먼저 Streamlit secrets 확인
+    if "GEMINI_API_KEY" in st.secrets:
+        api_key = st.secrets["GEMINI_API_KEY"]
+    else:
+        # 로컬 환경에서는 .env 파일 사용
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY")
+    
     if not api_key:
-        st.error("🚨 오류: .env 파일에서 GEMINI_API_KEY를 찾을 수 없습니다.")
+        st.error("🚨 오류: GEMINI_API_KEY를 찾을 수 없습니다. Streamlit Cloud의 Secrets 설정 또는 .env 파일을 확인해주세요.")
         return None
     try:
         genai.configure(api_key=api_key)
@@ -372,4 +381,4 @@ if model:
                 st.info("좌측 사이드바에서 고객 및 생성 옵션을 설정한 후 'AI 메시지 생성하기' 버튼을 눌러주세요. 결과는 여기에 표시됩니다.")
 
 else:
-    st.error("🚨 AI 모델을 로드하지 못했습니다. .env 파일에 GEMINI_API_KEY가 올바르게 설정되어 있는지 확인해주세요.")
+    st.error("🚨 AI 모델을 로드하지 못했습니다. Streamlit Cloud의 Secrets 설정에 GEMINI_API_KEY를 추가해주세요.")
